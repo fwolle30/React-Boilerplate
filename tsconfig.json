@@ -1,0 +1,22 @@
+{
+	"compilerOptions": {
+		"jsx": "react",
+		"module": "umd",
+		"rootDirs": [
+			"src",
+            "build/tcm/"
+		],
+		"typeRoots": [
+          "build/types/",
+          "types/custom/",
+		  "node_modules/@types/"
+		]
+	},
+	"include": [
+		"./**/*.ts",
+		"./**/*.tsx"
+	],
+	"exclude": [
+		"node_modules"
+	]
+}
