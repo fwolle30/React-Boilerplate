@@ -1,22 +1,20 @@
 {
-	"compilerOptions": {
-		"jsx": "react",
-		"module": "umd",
-		"rootDirs": [
-			"src",
-            "build/tcm/"
-		],
-		"typeRoots": [
-          "build/types/",
-          "types/custom/",
-		  "node_modules/@types/"
-		]
-	},
-	"include": [
-		"./**/*.ts",
-		"./**/*.tsx"
-	],
-	"exclude": [
-		"node_modules"
-	]
+  "compilerOptions": {
+    "jsx": "react",
+    "module": "commonjs",
+    "rootDir": "./src/",
+    "target": "es6",
+    "typeRoots": [
+      "./node_modules/@types/",
+      "./build/**/"
+    ],
+    "rootDirs": [
+      "./src/",
+      "./build/"
+    ]
+  },
+  "include": [
+    "./src/**/*.ts",
+    "./src/**/*.tsx"
+  ]
 }
