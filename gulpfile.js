@@ -40,19 +40,43 @@ process.argv
 
 const isPrd = (options.type === 'production');
 
+const PROJECT_NAME = 'example';
+
 const BUILD_DIR = './build/';
 const DIST_DIR = './dist/';
-const OUT_NAME = `ap-studio-bundle${isPrd ? '.min' : ''}.js`;
-const CSS_OUT_NAME = `ap-studio-bundle${isPrd ? '.min' : ''}.css`;
+const OUT_NAME = `${PROJECT_NAME}-bundle${isPrd ? '.min' : ''}.js`;
+const CSS_OUT_NAME = `${PROJECT_NAME}-bundle${isPrd ? '.min' : ''}.css`;
+const SRC_MAP_NAME = `${PROJECT_NAME}-bundle${isPrd ? '.min' : ''}.map`;
 
 const CONF_VARS = {
   BUILD_DIR,
   DIST_DIR,
   OUT_NAME,
-  CSS_OUT_NAME
+  CSS_OUT_NAME,
+  SRC_MAP_NAME
 };
 
 const confVarsRegex = new RegExp(`__(${Object.keys(CONF_VARS).join('|')})__`, 'g');
+const regexedBuildDir = regexPath(BUILD_DIR);
+
+/* Helper */
+
+function regexPath (dir) {
+  let normDir = dir.replace(/(\\|\/)/g, path.sep);
+  if (!normDir.endsWith(path.sep)) {
+    normDir = normDir + path.sep;
+  }
+
+  normDir = normDir.replace(/^\.+/, '');
+
+  if (!normDir.startsWith(path.sep)) {
+    normDir = path.sep + normDir;
+  }
+
+  normDir = normDir.replace(/\\/g, '\\\\');
+
+  return normDir;
+}
 
 /* Tasks:
   tcm: Create type definitions for CSS classes.
@@ -126,7 +150,8 @@ gulp.task('build', gulp.series('tcm', 'copyassets', 'copysrc', async function bu
         tsconfigOverride: { // overwrite tsconfig for rollup
           'compilerOptions': {
             'rootDir': BUILD_DIR,
-            'module': 'ES2015'
+            'module': 'ES2015',
+            'sourceMap': true
           },
           'include': [
             `${BUILD_DIR}**/*.ts`,
@@ -176,7 +201,16 @@ gulp.task('build', gulp.series('tcm', 'copyassets', 'copysrc', async function bu
   await bundle.write({ // write the bundled files
     file: `${DIST_DIR}${OUT_NAME}`, // output
     name: 'reactApp', // required but ignored (WTF??)
-    sourceMap: 'inline', // sourcemaps for chrome dev tool.
+    sourcemap: `${SRC_MAP_NAME}`, // sourcemaps for chrome dev tool.
+    sourcemapPathTransform: (filename) => { // transform sourcepath from build to src (enables you to use VSCode Debug with breakpoints)
+      let testStr = `${regexedBuildDir}.*\\.tsx?`;
+
+      if (filename.match(new RegExp(testStr))) {
+        filename = filename.replace(new RegExp(regexedBuildDir), `${path.sep}src${path.sep}`);
+      }
+
+      return filename;
+    },
     format: 'iife', // export as an immediate invoked function expression (iife) for scope isolation. => http://www.nicoespeon.com/en/2013/05/properly-isolate-variables-in-javascript/
     globals: [] // if we use jquery or any dependencies that are loaded from our html page, we can add them here. Rollup will happily ignore them.
   });
